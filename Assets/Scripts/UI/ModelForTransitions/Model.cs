@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public abstract class Model
@@ -9,6 +10,8 @@ public abstract class Model
     public float TargetCurtainPosition { get; private set; } = 0f;
     public float FadeTarget {  get; private set; } = 1f;
     public string NextLevelString { get; private set; }
+
+    public event Action<MenuState> OnStateChanged;
     private ViewModel _view;
 
     public Model(ViewModel view)
@@ -28,18 +31,6 @@ public abstract class Model
     public void SetState(MenuState state)
     {
         CurrentState = state;
-
-        switch (CurrentState)
-        {
-            case MenuState.Main:
-                break;
-            case MenuState.Settings:
-                break;
-            case MenuState.Transition:
-                {
-                    _view.DisplayTransitionCurtains(CurrentZoomTarget, ZoomAmount, TargetCurtainPosition, FadeTarget, NextLevelString);
-                    break;
-                }
-        }
+        OnStateChanged?.Invoke(state);
     }
 }

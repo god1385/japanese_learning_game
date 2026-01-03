@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class MainMenuPresenter : Presenter
+public class MainMenuPresenter : Presenter<MainMenuModel, MainMenuView>
 {
     public MainMenuPresenter(MainMenuModel model, MainMenuView mainMenuView) : base(model, mainMenuView)
     {

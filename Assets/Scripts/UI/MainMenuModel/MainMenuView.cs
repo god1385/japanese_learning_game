@@ -7,8 +7,6 @@ using UnityEngine.UI;
 
 public class MainMenuView : ViewModel
 {
-    [Header("Camera")]
-    [SerializeField] private Camera _camera;
     [Header("Buttons")]
     [SerializeField] private Button playButton;
     [SerializeField] private Button settingsButton;
@@ -19,10 +17,11 @@ public class MainMenuView : ViewModel
     public Button PlayButton => playButton;
     public Button SettingsButton => settingsButton;
     public Button ExitButton => exitButton;
-    private void Awake()
+    private Camera _camera;
+
+    public void Initialize(Camera camera)
     {
-        if (_camera == null)
-            _camera = Camera.main;
+        _camera = camera;
     }
 
     public void AssignAction(Button button, UnityAction action)
@@ -37,14 +36,12 @@ public class MainMenuView : ViewModel
         // Камера зум и движение
         seq.Append(_camera.transform.DOMove(zoomTarget.position, 1.5f).SetEase(Ease.InOutSine));
 
-        Image firstCurtainImage = base.FirstCurtain.GetComponent<Image>();
-        Image secondCurtainImage = base.SecondCurtain.GetComponent<Image>();
 
         // Шторки
-        seq.Append(base.FirstCurtain.DOAnchorPosX(targetCurtainPosition, 0.7f).SetEase(Ease.InOutSine));
-        seq.Join(base.SecondCurtain.DOAnchorPosX(-targetCurtainPosition, 0.7f).SetEase(Ease.InOutSine));
-        seq.Join(firstCurtainImage.DOFade(fadeTarget, 0.7f));
-        seq.Join(secondCurtainImage.DOFade(fadeTarget, 0.7f));
+        seq.Append(FirstCurtain.DOAnchorPosX(targetCurtainPosition, 0.7f).SetEase(Ease.InOutSine));
+        seq.Join(SecondCurtain.DOAnchorPosX(-targetCurtainPosition, 0.7f).SetEase(Ease.InOutSine));
+        seq.Join(FirstCurtainImage.DOFade(fadeTarget, 0.7f));
+        seq.Join(SecondCurtainImage.DOFade(fadeTarget, 0.7f));
         // После окончания
 
         if (nextLevelName != null)

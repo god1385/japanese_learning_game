@@ -1042,7 +1042,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuTransitions
   firstCurtain: {fileID: 1861382137}
   secondCurtain: {fileID: 1509807187}
-  _camera: {fileID: 519420031}
   playButton: {fileID: 517343360}
   settingsButton: {fileID: 706851211}
   exitButton: {fileID: 1354230258}
@@ -1058,6 +1057,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de84d969b6bf55468d628aae5a0b125, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuMain
+  _camera: {fileID: 519420031}
   mainMenuView: {fileID: 974014141}
   zoomTarget: {fileID: 585235752}
   zoomAmount: 30

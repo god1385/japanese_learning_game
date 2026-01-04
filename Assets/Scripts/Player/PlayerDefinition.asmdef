@@ -1,0 +1,17 @@
+{
+    "name": "PlayerDefinition",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8a6cb3b98fed4f741b98d38b4080741f",
+        "GUID:8d64a44ac87ab6548bc3d7335890753e"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

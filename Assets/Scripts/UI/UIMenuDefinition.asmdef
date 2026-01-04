@@ -1,0 +1,16 @@
+{
+    "name": "UIMenuDefinition",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a4503bf4b03f07543871874a0eac4445"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

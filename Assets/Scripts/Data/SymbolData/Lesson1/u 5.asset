@@ -10,13 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f8bec521ebc007c4887d18ea63ce5cff, type: 3}
-  m_Name: u
+  m_Name: u 5
   m_EditorClassIdentifier: Assembly-CSharp::SymbolData
-  id: character3
+  id: character8
   japaneseCharacter: "\u3046"
   pronunciation: u
   icon: {fileID: 0}
-  audioClip: {fileID: 8300000, guid: b9479718e0cb9f84b985d9a9333cc84f, type: 3}
-  examples:
-  - "\u4F8B 5"
-  - "\u4F8B 6"
+  audioClip: {fileID: 0}

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15e9e124c55466e4daf558ddb137d079, type: 3}
+  m_Name: AlphabetData
+  m_EditorClassIdentifier: SymboldAssembly::AlphabetData
+  alphabetData:
+  - {fileID: 11400000, guid: 31b392be9c889f544b731539e36174c0, type: 2}
+  - {fileID: 11400000, guid: 0b5a1bfbc7f52d040989735b3a612bb3, type: 2}
+  - {fileID: 11400000, guid: 2dfcb1b372e47d44ba6ca560bed444de, type: 2}
+  - {fileID: 11400000, guid: 219d0a6e36c78844381216c05963c381, type: 2}
+  - {fileID: 11400000, guid: aa36fe5719490e3449e36986d23d5bb1, type: 2}
+  - {fileID: 11400000, guid: 7fa4c0122c8458d49ae3ca67d46c4da3, type: 2}
+  - {fileID: 11400000, guid: 9601c8951a27d2e46a692d3f9d14f059, type: 2}
+  - {fileID: 11400000, guid: 64c171db7d88d0c41b88bd2aef9c17c2, type: 2}
+  - {fileID: 11400000, guid: c9260128b2b1548428b18bb681b5321b, type: 2}

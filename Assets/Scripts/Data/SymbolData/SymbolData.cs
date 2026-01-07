@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "NewSymbol", menuName = "Game/Symbol", order = 2),]
 public class SymbolData : ScriptableObject
@@ -8,4 +9,5 @@ public class SymbolData : ScriptableObject
     public string pronunciation;
     public Sprite icon;
     public AudioClip audioClip;
+    public List<string> examples;
 }

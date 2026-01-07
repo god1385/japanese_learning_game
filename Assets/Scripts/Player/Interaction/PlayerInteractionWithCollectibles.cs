@@ -1,5 +1,6 @@
 using Game.Input;
 using UnityEngine;
+using static Codice.CM.Common.CmCallContext;
 
 public class PlayerInteractionWithCollectibles : MonoBehaviour
 {
@@ -10,12 +11,22 @@ public class PlayerInteractionWithCollectibles : MonoBehaviour
 
     private void OnEnable()
     {
-        InputHandler.Interact += CheckForInteractables;
+        InputHandler.Interact += InteractWithObject;
     }
 
     private void OnDisable()
     {
-        InputHandler.Interact -= CheckForInteractables;
+        InputHandler.Interact -= InteractWithObject;
+    }
+
+    private void InteractWithObject()
+    {
+        currentInteractable?.Interact();
+    }
+
+    private void Update()
+    {
+        CheckForInteractables();
     }
 
 
@@ -24,14 +35,12 @@ public class PlayerInteractionWithCollectibles : MonoBehaviour
     {
         Collider[] hits = Physics.OverlapSphere(transform.position,interactionDistance,interactableMask);
         float minDist = float.MaxValue;
-        Debug.Log("Kek");
-        currentInteractable = null;
+        IInteractable closest = null;
 
         if (hits.Length > 0)
         {
             foreach (var hit in hits)
             {
-                Debug.Log("Lol");
                 var interactable = hit.GetComponent<IInteractable>();
 
                 if (interactable == null) continue;
@@ -41,11 +50,22 @@ public class PlayerInteractionWithCollectibles : MonoBehaviour
                 if (distance < minDist)
                 {
                     minDist = distance;
-                    currentInteractable = interactable;
+                    closest = interactable;
                 }
             }
 
-            currentInteractable?.Interact();
+            if (closest != currentInteractable)
+            {
+                currentInteractable?.OnUnfocus();
+                currentInteractable = closest;
+                currentInteractable?.OnFocus();
+            }
+        }
+
+        if (closest == null && currentInteractable != null)
+        {
+            currentInteractable.OnUnfocus();
+            currentInteractable = null;
         }
     }
 }

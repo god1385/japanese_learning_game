@@ -5,18 +5,22 @@ public class SymbolPageModel
 {
     public SymbolData PageSymbol { get; private set; }
     public bool IsUnlocked {  get; private set; }
+    public bool CanBeUnlocked { get; private set; }
     public event Action OnUnlocked;
 
-    public SymbolPageModel(SymbolData data, bool isUnlocked)
+    public SymbolPageModel(SymbolData data, bool isUnlocked, bool canBeUnlocked)
     {
         PageSymbol = data;
         IsUnlocked = isUnlocked;
+        CanBeUnlocked = canBeUnlocked;
     }
 
-    public void Unlock()
+    public bool TryUnlock()
     {
-        IsUnlocked = true;
-        OnUnlocked.Invoke();
-    }
+        if (!CanBeUnlocked || IsUnlocked)
+            return false;
 
+        IsUnlocked = true;
+        return true;
+    }
 }

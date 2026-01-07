@@ -8,6 +8,7 @@ public class PlayerInteractionWithCollectibles : MonoBehaviour
     [SerializeField] private LayerMask interactableMask;
 
     private IInteractable currentInteractable;
+    private bool _enabled = true;
 
     private void OnEnable()
     {
@@ -21,15 +22,15 @@ public class PlayerInteractionWithCollectibles : MonoBehaviour
 
     private void InteractWithObject()
     {
-        currentInteractable?.Interact();
+        if (_enabled)
+            currentInteractable?.Interact();
     }
 
     private void Update()
     {
-        CheckForInteractables();
+        if (_enabled)
+            CheckForInteractables();
     }
-
-
 
     private void CheckForInteractables()
     {
@@ -67,5 +68,10 @@ public class PlayerInteractionWithCollectibles : MonoBehaviour
             currentInteractable.OnUnfocus();
             currentInteractable = null;
         }
+    }
+
+    public void SetEnabledValue(bool value)
+    {
+        _enabled = value;
     }
 }

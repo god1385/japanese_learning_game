@@ -9,6 +9,7 @@ public class PlayerMovement : MonoBehaviour
 
     private Rigidbody rb;
     private Vector3 direction;
+    private bool _enabled = true;
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -26,28 +27,39 @@ public class PlayerMovement : MonoBehaviour
 
     private void MoveCharacter(Vector2 value)
     {
-        direction = new Vector3(value.x, 0, value.y);
+        if (_enabled)
+        {
+            direction = new Vector3(value.x, 0, value.y);
 
-        if (direction.sqrMagnitude > 0.01f)
-            rb.MovePosition(rb.position + direction * Time.fixedDeltaTime * moveSpeed);
+            if (direction.sqrMagnitude > 0.01f)
+                rb.MovePosition(rb.position + direction * Time.fixedDeltaTime * moveSpeed);
+        }
     }
 
     private void Update()
     {
-        if (Mathf.Abs(direction.x) > Mathf.Abs(direction.z))
+        if (_enabled)
         {
-            animator.SetFloat("MoveX", Mathf.Sign(direction.x));
-            animator.SetFloat("MoveY", 0);
+            if (Mathf.Abs(direction.x) > Mathf.Abs(direction.z))
+            {
+                animator.SetFloat("MoveX", Mathf.Sign(direction.x));
+                animator.SetFloat("MoveY", 0);
+            }
+            else if (Mathf.Abs(direction.x) < Mathf.Abs(direction.z))
+            {
+                animator.SetFloat("MoveX", 0);
+                animator.SetFloat("MoveY", Mathf.Sign(direction.z));
+            }
+            else if (direction.x == 0 && direction.z == 0)
+            {
+                animator.SetFloat("MoveX", 0);
+                animator.SetFloat("MoveY", 0);
+            }
         }
-        else if (Mathf.Abs(direction.x) < Mathf.Abs(direction.z))
-        {
-            animator.SetFloat("MoveX", 0);
-            animator.SetFloat("MoveY", Mathf.Sign(direction.z));
-        }
-        else if (direction.x == 0 && direction.z == 0)
-        {
-            animator.SetFloat("MoveX", 0);
-            animator.SetFloat("MoveY", 0);
-        }
+    }
+
+    public void SetEnabledValue(bool value)
+    {
+        _enabled = value;
     }
 }

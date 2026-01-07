@@ -1,0 +1,36 @@
+using UnityEngine;
+
+public class CollectibleSymbol : MonoBehaviour, ISymbolToCollect, IInteractable
+{
+    [SerializeField] private SymbolData symbolInfo;
+    [SerializeField] private Transform interactablePoint;
+    [SerializeField] private GameObject outline;
+
+    public SymbolData SymbolToUnlock => symbolInfo;
+
+    public Transform InteractionPoint => interactablePoint;
+
+    private bool _interacted = false;
+
+    public void Interact()
+    {
+        if (_interacted) return;
+
+        _interacted = true;
+
+        SymbolInteractionsConnector.Instance.TryUnlock(this);
+
+        gameObject.SetActive(false);
+    }
+
+    public void OnFocus()
+    {
+        if (!_interacted)
+            outline.SetActive(true);
+    }
+
+    public void OnUnfocus()
+    {
+        outline.SetActive(false);
+    }
+}

@@ -12,6 +12,10 @@ public class AudioSourceHandler : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             _audioSource = gameObject.AddComponent<AudioSource>();
+            _audioSource.playOnAwake = false;
+            _audioSource.loop = false;
+            _audioSource.spatialBlend = 0f;
+            _audioSource.volume = 1f;
         }
         else
         {

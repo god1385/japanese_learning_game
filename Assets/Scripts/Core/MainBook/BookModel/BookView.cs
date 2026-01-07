@@ -9,14 +9,15 @@ using Unity.Android.Gradle;
 
 public class BookView : MonoBehaviour
 {
-    [SerializeField] RectTransform bookObject;
-    [SerializeField] RectTransform miniBookObject;
-    [SerializeField] RectTransform canvasRect;
-    [SerializeField] SymbolPageView leftPage;
-    [SerializeField] SymbolPageView rightPage;
-    [SerializeField] Button nextPageButton;
-    [SerializeField] Button previousPageButton;
-    [SerializeField] Transform gridWithSymbols;
+    [SerializeField] private RectTransform bookObject;
+    [SerializeField] private RectTransform miniBookObject;
+    [SerializeField] private RectTransform canvasRect;
+    [SerializeField] private SymbolPageView leftPage;
+    [SerializeField] private SymbolPageView rightPage;
+    [SerializeField] private Button closeBookButton;
+    [SerializeField] private Button nextPageButton;
+    [SerializeField] private Button previousPageButton;
+    [SerializeField] private Transform gridWithSymbols;
     [SerializeField] private Image bookImage;
     [SerializeField] private List<Sprite> openBookSprites;
     [SerializeField] private List<Sprite> closeBookSprites;
@@ -28,17 +29,26 @@ public class BookView : MonoBehaviour
     public void HideMiniBookButton() => miniBookObject.gameObject.SetActive(false);
 
     public event Action OnBookOpened;
+    public event Action OnBookClosed;
 
-    private bool isOpen = false;
+    private bool _isOpen = false;
     private bool _isAnimating = false;
+    private Button _miniBookButton;
 
     public SymbolPageView LeftPage => leftPage;
     public SymbolPageView RightPage => rightPage;
 
+    public bool IsOpen => _isOpen;
+
     private void Awake()
     {
         if (miniBookObject.TryGetComponent(out Button button))
-            button.onClick.AddListener(OpenBook);
+        {
+            _miniBookButton = button;
+            _miniBookButton.onClick.AddListener(async () => await OpenBook());
+        }
+
+        closeBookButton.onClick.AddListener(CloseBook);
     }
 
     public void LinkPage(SymbolPageModel left, SymbolPageModel right)
@@ -62,11 +72,11 @@ public class BookView : MonoBehaviour
         previousPageButton.interactable = canPrev;
     }
 
-    public void OpenBook()
+    public async Task OpenBook()
     {
-        if (isOpen) return;
+        if (_isOpen) return;
 
-        isOpen = true;
+        _isOpen = true;
         miniBookObject.gameObject.SetActive(false);
 
         // Показываем контейнер книги
@@ -78,41 +88,66 @@ public class BookView : MonoBehaviour
         RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, miniBookObject.position, null, out miniAnchoredPos);
 
         bookObject.anchoredPosition = miniAnchoredPos;
-        bookObject.localScale = miniBookObject.localScale;
 
         // Ставим в позицию мини-книги и минимальный масштаб
         bookObject.position = miniBookObject.transform.position;
         bookObject.localScale = Vector3.one * 0.2f; // маленькая книга
 
-        // Анимация увеличения и перемещения к центру
-        bookObject.DOAnchorPos(targetAnchoredPos, 1f).SetEase(Ease.OutCubic);
-        bookObject.DOScale(targetScale, 1f).SetEase(Ease.OutCubic)
-            .OnComplete(async () =>
-            {
-                await PlayOpenBookAsync();
-                ChangeUiActiveStatus(true);
-                OnBookOpened?.Invoke();
-                // тут можно запускать анимацию раскрытия книги
-            });
+        var moveTween = bookObject.DOAnchorPos(targetAnchoredPos, 1f).SetEase(Ease.OutCubic);
+        var scaleTween = bookObject.DOScale(targetScale, 1f).SetEase(Ease.OutCubic);
+
+        // Ожидаем завершения **любой** из анимаций
+        await DOTween.Sequence()
+            .Join(moveTween)
+            .Join(scaleTween)
+            .AsyncWaitForCompletion();
+
+        // После завершения
+        await PlayOpenBookAsync();
+        ChangeUiActiveStatus(true);
+        OnBookOpened?.Invoke();
 
     }
 
+    public async void CloseBook()
+    {
+        if (!_isOpen || _isAnimating) return;
+
+        _isOpen = false;
+        ChangeUiActiveStatus(false);
+        await PlayBookAnimation(closeBookSprites, true);
+
+        Vector3 targetScale = miniBookObject.localScale;
+        Vector2 miniAnchoredPos;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, miniBookObject.position, null, out miniAnchoredPos);
+        bookObject.DOAnchorPos(miniAnchoredPos, 1f).SetEase(Ease.OutCubic);
+        bookObject.DOScale(targetScale, 1f).SetEase(Ease.OutCubic)
+            .OnComplete(() =>
+            {
+                bookObject.gameObject.SetActive(false);
+                miniBookObject.gameObject.SetActive(true);
+                OnBookClosed.Invoke();
+            });
+    }
+
     public Task PlayNextPageAsync() =>
-    PlayBookAnimation(nextPageSprites);
+    PlayBookAnimation(nextPageSprites, false);
 
     public Task PlayPreviousPageAsync() =>
-        PlayBookAnimation(previousPageSprites);
+        PlayBookAnimation(previousPageSprites, false);
 
     public Task PlayOpenBookAsync() =>
-        PlayBookAnimation(openBookSprites);
+        PlayBookAnimation(openBookSprites, false);
 
-    public async Task PlayBookAnimation(List<Sprite> frames)
+    public async Task PlayBookAnimation(List<Sprite> frames, bool isCloseAnimation)
     {
         if (_isAnimating) return;
 
         ChangeUiActiveStatus(false);
         await PlayAnimationAsync(frames);
-        ChangeUiActiveStatus(true);
+
+        if (!isCloseAnimation) ChangeUiActiveStatus(true);
     }
 
     public async Task PlayAnimationAsync(List<Sprite> frames)
@@ -137,5 +172,14 @@ public class BookView : MonoBehaviour
         rightPage.gameObject.SetActive(status);
         nextPageButton.gameObject.SetActive(status);
         previousPageButton.gameObject.SetActive(status);
+        closeBookButton.gameObject.SetActive(status);
+    }
+
+    public void ActionDispose()
+    {
+        nextPageButton.onClick.RemoveAllListeners();
+        previousPageButton.onClick.RemoveAllListeners();
+        _miniBookButton.onClick.RemoveAllListeners();
+        closeBookButton.onClick.RemoveAllListeners();
     }
 }

@@ -57,7 +57,8 @@ public class SymbolPageView : MonoBehaviour
 
         float targetHeight = defaultHeightOfConent / 2f;
 
-        await mainContent.DOSizeDelta(new Vector2(mainContent.sizeDelta.x, targetHeight),collapseDuration).SetEase(Ease.OutCubic).AsyncWaitForCompletion();
+        await mainContent.DOSizeDelta(new Vector2(mainContent.sizeDelta.x, targetHeight),collapseDuration)
+            .SetEase(Ease.OutCubic).AsyncWaitForCompletion();
 
         detailsPage.gameObject.SetActive(true);
         detailsCanvasGroup.alpha = 0;
@@ -89,7 +90,8 @@ public class SymbolPageView : MonoBehaviour
         detailsPage.gameObject.SetActive(false);
 
 
-        await mainContent.DOSizeDelta(new Vector2(mainContent.sizeDelta.x, defaultHeightOfConent), collapseDuration).SetEase(Ease.OutCubic).AsyncWaitForCompletion();
+        await mainContent.DOSizeDelta(new Vector2(mainContent.sizeDelta.x, defaultHeightOfConent), collapseDuration)
+            .SetEase(Ease.OutCubic).AsyncWaitForCompletion();
 
         isAnimating = false;
     }
@@ -113,12 +115,8 @@ public class SymbolPageView : MonoBehaviour
 
     public void SetLockedState()
     {
-        //symbolText.text = "?";
-        //openBookDetailsButton.interactable = false;
-        symbolText.text = _pageModel.PageSymbol.japaneseCharacter;
-        pronounciationText.text = _pageModel.PageSymbol.pronunciation;
-        detailTextField.text = CreateExamples();
-        openBookDetailsButton.interactable = true;
+        symbolText.text = "?";
+        openBookDetailsButton.interactable = false;
     }
     public void SetUnlockedState()
     {

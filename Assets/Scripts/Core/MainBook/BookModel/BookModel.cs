@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BookModel
@@ -9,6 +10,8 @@ public class BookModel
     private LessonsData _currentLesson;
     private HashSet<string> _unlockedElements;
     private Dictionary<string, SymbolPageModel> _pagesById;
+    private int _currentLeftPageIndex;
+    public int CurrentLeftPageIndex => _currentLeftPageIndex;
 
     public BookModel(LessonsData data, AlphabetData alphabet)
     {
@@ -17,40 +20,59 @@ public class BookModel
         _unlockedElements = new HashSet<string>();
         _pagesById = new Dictionary<string, SymbolPageModel>();
         _pages = new List<SymbolPageModel>();
-        LoadProgress();
 
         foreach (var symbol in _alphabet?.alphabetData)
         {
-            var page = new SymbolPageModel(symbol, IsUnlocked(symbol));
+            bool canBeUnlocked = _currentLesson.lessonSymbols.Contains(symbol);
+            var page = new SymbolPageModel(symbol, isUnlocked: false, canBeUnlocked);
             _pages.Add(page);
             _pagesById.Add(symbol.id, page);
         }
     }
-
-    public bool IsUnlocked(SymbolData symbol) => _unlockedElements.Contains(symbol.id);
     public IEnumerable<SymbolData> AllElements => _currentLesson.lessonSymbols;
 
-    public void UnlockElements(SymbolData symbol)
+    public bool TryUnlockSymbol(string symbolId)
     {
-        if (!_currentLesson.lessonSymbols.Contains(symbol)) return;
+        if (!_pagesById.TryGetValue(symbolId, out var page))
+            return false;
 
-        var page = _pagesById[symbol.id];
+        if (!page.TryUnlock())
+            return false;
 
-        if (page != null)
+        _unlockedElements.Add(symbolId);
+        return true;
+    }
+
+    public BookSaveModel CreateSaveData()
+    {
+        Debug.Log(_unlockedElements.Count);
+        return new BookSaveModel
         {
-            page.Unlock();
-            _unlockedElements.Add(symbol.id);
-            SaveProgress();
+            unlockedElements = _unlockedElements.ToList(),
+            pageIndex = _currentLeftPageIndex
+        };
+    }
+
+
+
+    public void LoadFromSave(BookSaveModel data)
+    {
+        _unlockedElements.Clear();
+        _unlockedElements = new HashSet<string>(data.unlockedElements);
+        _currentLeftPageIndex = data.pageIndex;
+
+        foreach (var id in data.unlockedElements)
+        {
+            if (_pagesById.TryGetValue(id, out var page))
+            {
+                page.TryUnlock();
+                _unlockedElements.Add(id);
+            }
         }
     }
 
-    private void LoadProgress()
+    public void SetPageIndex(int index)
     {
-
-    }
-
-    private void SaveProgress()
-    {
-
+        _currentLeftPageIndex = index;
     }
 }

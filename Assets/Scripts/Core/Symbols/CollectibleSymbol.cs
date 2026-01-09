@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zenject;
 
 public class CollectibleSymbol : MonoBehaviour, ISymbolToCollect, IInteractable
 {
@@ -6,9 +7,11 @@ public class CollectibleSymbol : MonoBehaviour, ISymbolToCollect, IInteractable
     [SerializeField] private Transform interactablePoint;
     [SerializeField] private GameObject outline;
 
+    [Inject] private SymbolInteractionsConnector _connector;
     public SymbolData SymbolToUnlock => symbolInfo;
 
     public Transform InteractionPoint => interactablePoint;
+
 
     private bool _interacted = false;
 
@@ -18,7 +21,7 @@ public class CollectibleSymbol : MonoBehaviour, ISymbolToCollect, IInteractable
 
         _interacted = true;
 
-        SymbolInteractionsConnector.Instance.TryUnlock(this);
+        _connector.CollectSymbol(this);
 
         gameObject.SetActive(false);
     }

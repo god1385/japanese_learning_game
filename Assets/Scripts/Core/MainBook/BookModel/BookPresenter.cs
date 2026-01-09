@@ -8,14 +8,17 @@ public class BookPresenter
     private BookView _bookView;
     private BookModel _bookModel;
     private BookProgressTracker _progressTracker;
+    private AudioSourceHandler _audioSourceHandler;
+    private bool _bookOpened = false;
 
     public event Action BookOpened;
     public event Action BookClosed;
-    public BookPresenter(BookView view, BookModel model, BookProgressTracker progressTracker)
+    public BookPresenter(BookView view, BookModel model, BookProgressTracker progressTracker, AudioSourceHandler audioSourceHandler)
     {
         _bookView = view;
         _bookModel = model;
         _progressTracker = progressTracker;
+        _audioSourceHandler = audioSourceHandler;
 
         BookOpened += OnBookOpened;
         BookClosed += OnBookClosed;
@@ -29,18 +32,28 @@ public class BookPresenter
         _bookView.RightPage.OnPlaySoundClicked += OnPlaySoundClicked;
     }
 
-    public async void TryUnlockSymbol(SymbolData symbol)
+    public async Task TryUnlockSymbol(SymbolData symbol)
     {
-        if (_bookModel.TryUnlockSymbol(symbol.id))
+        if (!_bookModel.TryUnlockSymbol(symbol.id)) return;
+
+        int symbolPageIndex = _bookModel.GetPageIndexForSymbol(symbol.id);
+        int leftPageIndex = symbolPageIndex % 2 == 0 ? symbolPageIndex : symbolPageIndex - 1;
+        _bookModel.SetPageIndex(leftPageIndex);
+
+        SaveProgress();
+        await _bookView.PlayUnlockSymbolAnimation(symbol);
+
+        if (_bookOpened)
         {
-            SaveProgress();
+
             if (!_bookView.IsOpen)
             {
                 await _bookView.OpenBook();
-                //_bookView.PlayUnlockEffect(symbol);
             }
 
+            var page = symbolPageIndex % 2 == 0 ? _bookView.LeftPage : _bookView.RightPage;
             RefreshPageData();
+            await _bookView.HighlightUnlockedSymbol(page);
         }
     }
 
@@ -65,6 +78,7 @@ public class BookPresenter
 
     public void OnBookOpened()
     {
+        _bookOpened = true;
         LoadProgress();
         RefreshPageData();
     }
@@ -91,7 +105,7 @@ public class BookPresenter
         if (_bookModel.CurrentLeftPageIndex + 2 >= _bookModel.Pages.Count)
             return;
 
-        AudioSourceHandler.Instance.StopAudio();
+        _audioSourceHandler.StopAudio();
         _bookModel.SetPageIndex(_bookModel.CurrentLeftPageIndex + 2);
         RefreshPageData();
         await _bookView.PlayNextPageAsync();
@@ -102,7 +116,7 @@ public class BookPresenter
         if (_bookModel.CurrentLeftPageIndex - 2 < 0)
             return;
 
-        AudioSourceHandler.Instance.StopAudio();
+        _audioSourceHandler.StopAudio();
         _bookModel.SetPageIndex(_bookModel.CurrentLeftPageIndex - 2);
         RefreshPageData();
         await _bookView.PlayPreviousPageAsync();
@@ -113,8 +127,7 @@ public class BookPresenter
     private void SaveProgress()
     {
         var data = _bookModel.CreateSaveData();
-        if (data.unlockedElements.Count > 0)
-            Debug.Log(data.unlockedElements[0]);
+
         _progressTracker.Save(data);
     }
 
@@ -144,7 +157,7 @@ public class BookPresenter
             return;
         }
 
-        AudioSourceHandler.Instance.PlayAudio(clip);
+        _audioSourceHandler.PlayAudio(clip);
     }
 
     private async void OnSymbolPageClicked(SymbolPageView view)

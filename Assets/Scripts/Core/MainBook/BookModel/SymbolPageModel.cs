@@ -21,6 +21,7 @@ public class SymbolPageModel
             return false;
 
         IsUnlocked = true;
+        OnUnlocked?.Invoke();
         return true;
     }
 }

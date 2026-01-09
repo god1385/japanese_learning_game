@@ -6,10 +6,12 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 3f;
     [SerializeField] private Animator animator;
+    [SerializeField] private bool isTutorial;
 
     private Rigidbody rb;
     private Vector3 direction;
-    private bool _enabled = true;
+    private bool _enabled = false;
+    
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -61,5 +63,6 @@ public class PlayerMovement : MonoBehaviour
     public void SetEnabledValue(bool value)
     {
         _enabled = value;
+        animator.enabled = value;
     }
 }

@@ -14,8 +14,6 @@ public class BookProgressTracker
 
     public void Save(BookSaveModel saveData)
     {
-        if (saveData.unlockedElements.Count > 0)
-            Debug.Log(saveData.unlockedElements[0]);
         _saveService.Save(saveData, BOOK_PROGRESS_KEY);
     }
 

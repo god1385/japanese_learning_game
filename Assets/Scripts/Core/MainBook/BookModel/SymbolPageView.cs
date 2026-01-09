@@ -28,18 +28,25 @@ public class SymbolPageView : MonoBehaviour
     public Action<SymbolPageView> OpenBookDetailsButtonClicked;
     public event Action<SymbolPageView> OnPlaySoundClicked;
     public SymbolPageModel PageModel => _pageModel;
+    public TextMeshProUGUI SymbolText => symbolText;
 
     private void Awake()
     {
         openBookDetailsButton = GetComponent<Button>();
         defaultHeightOfConent = mainContent.rect.height;
-        playSoundButton.onClick.AddListener(() => { OnPlaySoundClicked.Invoke(this); });
+        playSoundButton.onClick.AddListener(() => { OnPlaySoundClicked?.Invoke(this); });
     }
 
     public void BindData(SymbolPageModel model)
     {
+        if (_pageModel != null)
+            _pageModel.OnUnlocked -= SetUnlockedState;
+
         _pageModel = model;
-        model.OnUnlocked += SetUnlockedState;
+
+        if (_pageModel != null)
+            _pageModel.OnUnlocked += SetUnlockedState;
+
         mainContent.sizeDelta = new Vector2(mainContent.sizeDelta.x, defaultHeightOfConent);
         detailsPage.gameObject.SetActive(false);
         detailsCanvasGroup.alpha = 0;

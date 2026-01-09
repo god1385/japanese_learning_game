@@ -15,5 +15,6 @@ MonoBehaviour:
   alphabetData:
   - {fileID: 11400000, guid: 31b392be9c889f544b731539e36174c0, type: 2}
   - {fileID: 11400000, guid: 0b5a1bfbc7f52d040989735b3a612bb3, type: 2}
+  - {fileID: 11400000, guid: b87fef8049d7dc649bc622ccb19f10be, type: 2}
   - {fileID: 11400000, guid: 2dfcb1b372e47d44ba6ca560bed444de, type: 2}
   - {fileID: 11400000, guid: 219d0a6e36c78844381216c05963c381, type: 2}

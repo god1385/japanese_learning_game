@@ -1,22 +1,26 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 public class BookInitialize : MonoBehaviour
 {
-    [SerializeField] private BookView bookView;
-    [SerializeField] private LessonsData lessonData;
-    [SerializeField] private AlphabetData alphabetData;
     [SerializeField] private MonoBehaviour[] inputBlockerBehaviours;
-
     private List<IInputBlocker> _blockers;
-
-    private BookModel _bookModel;
     private BookPresenter _bookPresenter;
 
     private void Awake()
     {
         _blockers = new List<IInputBlocker>();
+    }
 
+    [Inject]
+    public void Construct(BookPresenter bookPresenter)
+    {
+        _bookPresenter = bookPresenter;
+    }
+
+    public void Initialize()
+    {
         foreach (var mb in inputBlockerBehaviours)
         {
             if (mb is IInputBlocker blocker)
@@ -25,18 +29,8 @@ public class BookInitialize : MonoBehaviour
                 Debug.LogError($"{mb.name} does not implement IInputBlocker");
         }
 
-        ISaveService saveService = new JsonDataSaveService();
-
-        var progressTracker = new BookProgressTracker(saveService);
-        _bookModel = new BookModel(lessonData, alphabetData);
-        _bookPresenter = new BookPresenter(bookView, _bookModel, progressTracker);
         _bookPresenter.BookOpened += BlockInput;
         _bookPresenter.BookClosed += UnBlockInput;
-        SymbolInteractionsConnector.Instance.Bind(_bookPresenter);
-    }
-
-    public void Initialize()
-    {
         _bookPresenter.ShowBook();
     }
 
@@ -58,6 +52,8 @@ public class BookInitialize : MonoBehaviour
 
     private void OnDestroy()
     {
+        _bookPresenter.BookOpened -= BlockInput;
+        _bookPresenter.BookClosed -= UnBlockInput;
         _bookPresenter.Dispose();
     }
 }

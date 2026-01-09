@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 public class BookModel
 {
@@ -29,7 +28,6 @@ public class BookModel
             _pagesById.Add(symbol.id, page);
         }
     }
-    public IEnumerable<SymbolData> AllElements => _currentLesson.lessonSymbols;
 
     public bool TryUnlockSymbol(string symbolId)
     {
@@ -45,7 +43,6 @@ public class BookModel
 
     public BookSaveModel CreateSaveData()
     {
-        Debug.Log(_unlockedElements.Count);
         return new BookSaveModel
         {
             unlockedElements = _unlockedElements.ToList(),
@@ -53,12 +50,22 @@ public class BookModel
         };
     }
 
+    public int GetPageIndexForSymbol(string symbolId)
+    {
+        for (int i = 0; i < _pages.Count; i++)
+        {
+            if (_pages[i].PageSymbol.id == symbolId)
+                return i;
+        }
+        return 0;
+    }
+
 
 
     public void LoadFromSave(BookSaveModel data)
     {
         _unlockedElements.Clear();
-        _unlockedElements = new HashSet<string>(data.unlockedElements);
+        _unlockedElements = data.unlockedElements.ToHashSet();
         _currentLeftPageIndex = data.pageIndex;
 
         foreach (var id in data.unlockedElements)

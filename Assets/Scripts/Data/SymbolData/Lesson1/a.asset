@@ -15,7 +15,7 @@ MonoBehaviour:
   id: character1
   japaneseCharacter: "\u3042"
   pronunciation: a
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f1a8e25f55b8c5e4f95bf5d5285d5b01, type: 3}
   audioClip: {fileID: 8300000, guid: 80f0309ef28c8564bb64dbb4e63957e5, type: 3}
   examples:
   - "\u4F8B 1"

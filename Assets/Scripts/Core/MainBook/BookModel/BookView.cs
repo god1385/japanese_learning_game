@@ -1,14 +1,14 @@
-using DG.Tweening;
+Ôªøusing DG.Tweening;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Threading.Tasks;
-using Unity.Android.Gradle;
 
 public class BookView : MonoBehaviour
 {
+    [Header("Book UI")]
     [SerializeField] private RectTransform bookObject;
     [SerializeField] private RectTransform miniBookObject;
     [SerializeField] private RectTransform canvasRect;
@@ -17,19 +17,24 @@ public class BookView : MonoBehaviour
     [SerializeField] private Button closeBookButton;
     [SerializeField] private Button nextPageButton;
     [SerializeField] private Button previousPageButton;
-    [SerializeField] private Transform gridWithSymbols;
     [SerializeField] private Image bookImage;
+
+    [Header("Sprites")]
     [SerializeField] private List<Sprite> openBookSprites;
     [SerializeField] private List<Sprite> closeBookSprites;
     [SerializeField] private List<Sprite> nextPageSprites;
     [SerializeField] private List<Sprite> previousPageSprites;
     [SerializeField] private float spriteChangeDuration = 0.1f;
 
+    [Header("Symbol Pop-up")]
+    [SerializeField] private CanvasGroup symbolPopUp;
+    [SerializeField] private Image symbolImage;
+    [SerializeField] private float popUpMoveDuration = 1f;
+    [SerializeField] private float popUpBounceDuration = 0.5f;
+    [SerializeField] private int bounceLoops = 4;
+
     public void ShowMiniBookButton() => miniBookObject.gameObject.SetActive(true);
     public void HideMiniBookButton() => miniBookObject.gameObject.SetActive(false);
-
-    public event Action OnBookOpened;
-    public event Action OnBookClosed;
 
     private bool _isOpen = false;
     private bool _isAnimating = false;
@@ -37,8 +42,10 @@ public class BookView : MonoBehaviour
 
     public SymbolPageView LeftPage => leftPage;
     public SymbolPageView RightPage => rightPage;
-
     public bool IsOpen => _isOpen;
+
+    public event Action OnBookOpened;
+    public event Action OnBookClosed;
 
     private void Awake()
     {
@@ -48,7 +55,82 @@ public class BookView : MonoBehaviour
             _miniBookButton.onClick.AddListener(async () => await OpenBook());
         }
 
-        closeBookButton.onClick.AddListener(CloseBook);
+        closeBookButton.onClick.AddListener(async () => await CloseBook());
+    }
+
+    private async Task AnimateRect(RectTransform rect, Vector2 targetPos, Vector3 targetScale, float duration, Ease ease = Ease.OutCubic)
+    {
+        await DOTween.Sequence()
+            .Join(rect.DOAnchorPos(targetPos, duration).SetEase(ease))
+            .Join(rect.DOScale(targetScale, duration).SetEase(ease))
+            .AsyncWaitForCompletion();
+    }
+
+    public async Task PlayUnlockSymbolAnimation(SymbolData symbolData)
+    {
+        var root = symbolPopUp.GetComponent<RectTransform>();
+        var defaultScale = root.localScale;
+        var centerPosition = root.anchoredPosition;
+        float canvasHalfHeight = canvasRect.rect.height / 2f;
+        float popupHalfHeight = root.rect.height / 2f;
+        Vector2 _startPos = new Vector2(centerPosition.x,-canvasHalfHeight - popupHalfHeight);
+        float bounceHeight = root.rect.height * 0.05f;
+
+        symbolPopUp.alpha = 0f;
+        root.localScale = Vector3.one * 0.9f;
+        root.anchoredPosition = _startPos;
+
+        symbolImage.sprite = symbolData.icon;
+        symbolPopUp.gameObject.SetActive(true);
+
+        var seq = DOTween.Sequence();
+
+        // Fade —Å—Ä–∞–∑—É, –Ω–æ –ø—É—Å—Ç—å –¥–ª–∏—Ç—Å—è —Ç–∞–∫ –∂–µ, –∫–∞–∫ –¥–≤–∏–∂–µ–Ω–∏–µ, —á—Ç–æ–±—ã –Ω–µ –±—ã–ª–æ —Ä—ã–≤–∫–∞
+        seq.Insert(0f, symbolPopUp.DOFade(1f, popUpMoveDuration));
+
+        // –û–¥–Ω–æ–≤—Ä–µ–º–µ–Ω–Ω–æ –¥–≤–∏–≥–∞–µ–º –∏ –º–∞—Å—à—Ç–∞–±–∏—Ä—É–µ–º
+        seq.Insert(0f, root.DOAnchorPos(centerPosition, popUpMoveDuration).SetEase(Ease.OutCubic));
+        seq.Insert(0f, root.DOScale(1f, popUpMoveDuration).SetEase(Ease.OutBack));
+
+        seq.Append(root.DOAnchorPosY(centerPosition.y + bounceHeight, popUpBounceDuration)
+        .SetEase(Ease.InOutSine)
+        .SetLoops(bounceLoops, LoopType.Yoyo));
+
+        Vector3 targetScale = miniBookObject.localScale;
+        Vector2 miniAnchoredPos;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, miniBookObject.position, null, out miniAnchoredPos);
+        var moveTween = root.DOAnchorPos(miniAnchoredPos, 1f).SetEase(Ease.OutCubic);
+        var scaleTween = root.DOScale(targetScale, 1f).SetEase(Ease.OutCubic);
+
+        seq.Append(moveTween).Join(scaleTween);
+
+        await seq.AsyncWaitForCompletion();
+
+        symbolPopUp.gameObject.SetActive(false);
+        root.anchoredPosition = centerPosition;
+        root.localScale = defaultScale;
+    }
+
+    public async Task HighlightUnlockedSymbol(SymbolPageView pageView)
+    {
+        var rect = pageView.SymbolText.GetComponent<RectTransform>();
+
+        // –°–æ—Ö—Ä–∞–Ω—è–µ–º –æ—Ä–∏–≥–∏–Ω–∞–ª—å–Ω—ã–π –º–∞—Å—à—Ç–∞–±
+        Vector3 originalScale = rect.localScale;
+
+        // –ö—Ä–∞—Ç–∫–∏–π "pop"
+        var seq = DOTween.Sequence();
+        seq.Append(rect.DOScale(originalScale * 1.1f, 1).SetEase(Ease.OutBack));
+        var symbolText = pageView.SymbolText;
+        if (symbolText != null)
+        {
+            Color originalColor = symbolText.color;
+            seq.Join(symbolText.DOColor(Color.yellow, 1).SetLoops(2, LoopType.Yoyo));
+        }
+
+        seq.Append(rect.DOScale(originalScale, 1).SetEase(Ease.InBack));
+        await seq.AsyncWaitForCompletion();
     }
 
     public void LinkPage(SymbolPageModel left, SymbolPageModel right)
@@ -62,8 +144,8 @@ public class BookView : MonoBehaviour
         nextPageButton.onClick.RemoveAllListeners();
         previousPageButton.onClick.RemoveAllListeners();
 
-        nextPageButton.onClick.AddListener(async () => await nextPressed());
-        previousPageButton.onClick.AddListener(async () => await previousPressed());
+        nextPageButton.onClick.AddListener(() => _ = nextPressed());
+        previousPageButton.onClick.AddListener(() => _ = previousPressed());
     }
 
     public void SetButtonsState(bool canNext, bool canPrev)
@@ -79,9 +161,7 @@ public class BookView : MonoBehaviour
         _isOpen = true;
         miniBookObject.gameObject.SetActive(false);
 
-        // œÓÍ‡Á˚‚‡ÂÏ ÍÓÌÚÂÈÌÂ ÍÌË„Ë
-        bookObject.gameObject.SetActive(true);
-        Vector2 targetAnchoredPos = Vector2.zero; // ˆÂÌÚ Canvas
+        Vector2 targetAnchoredPos = Vector2.zero; // —Ü–µ–Ω—Ç—Ä Canvas
         Vector3 targetScale = Vector3.one;
         Vector2 miniAnchoredPos;
 
@@ -89,27 +169,21 @@ public class BookView : MonoBehaviour
 
         bookObject.anchoredPosition = miniAnchoredPos;
 
-        // —Ú‡‚ËÏ ‚ ÔÓÁËˆË˛ ÏËÌË-ÍÌË„Ë Ë ÏËÌËÏ‡Î¸Ì˚È Ï‡Ò¯Ú‡·
+        // –°—Ç–∞–≤–∏–º –≤ –ø–æ–∑–∏—Ü–∏—é –º–∏–Ω–∏-–∫–Ω–∏–≥–∏ –∏ –º–∏–Ω–∏–º–∞–ª—å–Ω—ã–π –º–∞—Å—à—Ç–∞–±
         bookObject.position = miniBookObject.transform.position;
-        bookObject.localScale = Vector3.one * 0.2f; // Ï‡ÎÂÌ¸Í‡ˇ ÍÌË„‡
+        bookObject.localScale = Vector3.one * 0.2f; // –º–∞–ª–µ–Ω—å–∫–∞—è –∫–Ω–∏–≥–∞
 
-        var moveTween = bookObject.DOAnchorPos(targetAnchoredPos, 1f).SetEase(Ease.OutCubic);
-        var scaleTween = bookObject.DOScale(targetScale, 1f).SetEase(Ease.OutCubic);
+        bookObject.gameObject.SetActive(true);
+        await AnimateRect(bookObject, targetAnchoredPos, targetScale, 1f);
 
-        // ŒÊË‰‡ÂÏ Á‡‚Â¯ÂÌËˇ **Î˛·ÓÈ** ËÁ ‡ÌËÏ‡ˆËÈ
-        await DOTween.Sequence()
-            .Join(moveTween)
-            .Join(scaleTween)
-            .AsyncWaitForCompletion();
-
-        // œÓÒÎÂ Á‡‚Â¯ÂÌËˇ
+        // –ü–æ—Å–ª–µ –∑–∞–≤–µ—Ä—à–µ–Ω–∏—è
         await PlayOpenBookAsync();
         ChangeUiActiveStatus(true);
         OnBookOpened?.Invoke();
 
     }
 
-    public async void CloseBook()
+    public async Task CloseBook()
     {
         if (!_isOpen || _isAnimating) return;
 
@@ -121,14 +195,11 @@ public class BookView : MonoBehaviour
         Vector2 miniAnchoredPos;
 
         RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, miniBookObject.position, null, out miniAnchoredPos);
-        bookObject.DOAnchorPos(miniAnchoredPos, 1f).SetEase(Ease.OutCubic);
-        bookObject.DOScale(targetScale, 1f).SetEase(Ease.OutCubic)
-            .OnComplete(() =>
-            {
-                bookObject.gameObject.SetActive(false);
-                miniBookObject.gameObject.SetActive(true);
-                OnBookClosed.Invoke();
-            });
+        await AnimateRect(bookObject, miniAnchoredPos, targetScale, 1f);
+
+        bookObject.gameObject.SetActive(false);
+        miniBookObject.gameObject.SetActive(true);
+        OnBookClosed.Invoke();
     }
 
     public Task PlayNextPageAsync() =>
@@ -165,6 +236,7 @@ public class BookView : MonoBehaviour
 
         _isAnimating = false;
     }
+
 
     public void ChangeUiActiveStatus(bool status)
     {

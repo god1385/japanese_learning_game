@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8bec521ebc007c4887d18ea63ce5cff, type: 3}
+  m_Name: Ka
+  m_EditorClassIdentifier: Assembly-CSharp::SymbolData
+  id: character3
+  japaneseCharacter: "\u304B"
+  pronunciation: Ka
+  icon: {fileID: 21300000, guid: 11a3c0bedec57f34690e9ab6befe094a, type: 3}
+  audioClip: {fileID: 8300000, guid: 80f0309ef28c8564bb64dbb4e63957e5, type: 3}
+  examples:
+  - "\u4F8B 1"
+  - "\u4F8B 2"

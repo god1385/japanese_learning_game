@@ -3,17 +3,15 @@ using UnityEngine.LightTransport;
 
 public class SymbolInteractionsConnector
 {
-    public static SymbolInteractionsConnector Instance { get; } = new();
+    private readonly BookPresenter _bookPresenter;
 
-    private BookPresenter _bookPresenter;
-
-    public void Bind(BookPresenter presenter)
+    public SymbolInteractionsConnector(BookPresenter bookPresenter)
     {
-        _bookPresenter = presenter;
+        _bookPresenter = bookPresenter;
     }
 
-    public void TryUnlock(ISymbolToCollect source)
+    public async void CollectSymbol(ISymbolToCollect source)
     {
-        _bookPresenter.TryUnlockSymbol(source.SymbolToUnlock);
+        await _bookPresenter.TryUnlockSymbol(source.SymbolToUnlock);
     }
 }

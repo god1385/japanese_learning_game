@@ -6,12 +6,12 @@ public class PlayerInputBlocker : MonoBehaviour, IInputBlocker
     [SerializeField] private PlayerInteractionWithCollectibles interaction;
     public void Block()
     {
-        movement.SetEnabledValue(false);
+        movement.EnableInteraction(false);
         interaction.SetEnabledValue(false);
     }
     public void UnBlock()
     {
-        movement.SetEnabledValue(true);
+        movement.EnableInteraction(true);
         interaction.SetEnabledValue(true);
     }
 }

@@ -2,7 +2,8 @@
     "name": "UIMenuDefinition",
     "rootNamespace": "",
     "references": [
-        "GUID:a4503bf4b03f07543871874a0eac4445"
+        "GUID:a4503bf4b03f07543871874a0eac4445",
+        "GUID:4307f53044263cf4b835bd812fc161a4"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Zenject;
 
@@ -15,13 +16,13 @@ public class CollectibleSymbol : MonoBehaviour, ISymbolToCollect, IInteractable
 
     private bool _interacted = false;
 
+    public event Action OnInteracted;
+
     public void Interact()
     {
         if (_interacted) return;
 
         _interacted = true;
-
-        _connector.CollectSymbol(this);
 
         gameObject.SetActive(false);
     }
@@ -35,5 +36,10 @@ public class CollectibleSymbol : MonoBehaviour, ISymbolToCollect, IInteractable
     public void OnUnfocus()
     {
         outline.SetActive(false);
+    }
+
+    public void CollectSymbol()
+    {
+        _connector.CollectSymbol(this);
     }
 }

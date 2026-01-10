@@ -10,8 +10,8 @@ public class SymbolInteractionsConnector
         _bookPresenter = bookPresenter;
     }
 
-    public async void CollectSymbol(ISymbolToCollect source)
+    public void CollectSymbol(ISymbolToCollect source)
     {
-        await _bookPresenter.TryUnlockSymbol(source.SymbolToUnlock);
+        _bookPresenter.EnqueueUnlockSymbol(source.SymbolToUnlock);
     }
 }

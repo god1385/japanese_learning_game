@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8bec521ebc007c4887d18ea63ce5cff, type: 3}
   m_Name: Te
   m_EditorClassIdentifier: Assembly-CSharp::SymbolData
-  id: character4
+  id: character5
   japaneseCharacter: "\u3066"
   pronunciation: te
   icon: {fileID: 21300000, guid: 987c7fc40649de142b9d09e689391887, type: 3}

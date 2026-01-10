@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +9,8 @@ public class BookInteractable : MonoBehaviour, IInteractable
     [SerializeField] private BookInitialize bookInitialize;
     public Transform InteractionPoint => interactionPoint;
     private bool _interacted = false;
+
+    public event Action OnInteracted;
 
     public void Interact()
     {

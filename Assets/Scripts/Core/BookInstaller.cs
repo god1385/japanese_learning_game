@@ -7,6 +7,9 @@ public class BookInstaller : MonoInstaller
     [SerializeField] private AudioSourceHandler audioSourceHandler;
     [SerializeField] private LessonsData lessonsData;
     [SerializeField] private AlphabetData alphabetData;
+    [SerializeField] private GameCameraUtilities gameCameraUtilities;
+    [SerializeField] private LevelDataSet levelDataSet;
+    [SerializeField] private TutorialNarrator tutorialNarrator;
 
     public override void InstallBindings()
     {
@@ -35,7 +38,12 @@ public class BookInstaller : MonoInstaller
             .FromInstance(audioSourceHandler)
             .AsSingle();
 
-        Container.Bind<TutorialInfo>()
+        Container.Bind<GameCameraUtilities>()
+            .FromInstance(gameCameraUtilities)
             .AsSingle();
+
+        Container.Bind<TutorialPresenter>()
+            .AsSingle()
+            .WithArguments(levelDataSet, tutorialNarrator);
     }
 }

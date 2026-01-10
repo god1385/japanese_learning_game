@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEditor.Overlays;
 using UnityEngine;
@@ -10,6 +11,8 @@ public class BookPresenter
     private BookProgressTracker _progressTracker;
     private AudioSourceHandler _audioSourceHandler;
     private bool _bookOpened = false;
+    private readonly Queue<SymbolData> _unlockQueue = new();
+    private bool _isProcessingQueue = false;
 
     public event Action BookOpened;
     public event Action BookClosed;
@@ -30,6 +33,27 @@ public class BookPresenter
         _bookView.RightPage.OpenBookDetailsButtonClicked += OnSymbolPageClicked;
         _bookView.LeftPage.OnPlaySoundClicked += OnPlaySoundClicked;
         _bookView.RightPage.OnPlaySoundClicked += OnPlaySoundClicked;
+    }
+
+    public void EnqueueUnlockSymbol(SymbolData symbol)
+    {
+        _unlockQueue.Enqueue(symbol);
+
+        if (!_isProcessingQueue)
+            _ = ProcessUnlockQueueAsync();
+    }
+
+    private async Task ProcessUnlockQueueAsync()
+    {
+        _isProcessingQueue = true;
+
+        while (_unlockQueue.Count > 0)
+        {
+            var symbol = _unlockQueue.Dequeue();
+            await TryUnlockSymbol(symbol);
+        }
+
+        _isProcessingQueue = false;
     }
 
     public async Task TryUnlockSymbol(SymbolData symbol)

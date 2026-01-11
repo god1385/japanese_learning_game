@@ -27,7 +27,6 @@ public class MosquitoFly : MonoBehaviour, ISymbolToCollect, IInteractable, ITuto
     private bool canInteract;
     private TutorialPresenter _tutorial;
     private Vector3 _lastPosition;
-    private bool _isClicked = false;
 
     [Inject] private SymbolInteractionsConnector _connector;
 
@@ -52,7 +51,7 @@ public class MosquitoFly : MonoBehaviour, ISymbolToCollect, IInteractable, ITuto
     {
         Vector3 delta = transform.position - _lastPosition;
 
-        if (delta.sqrMagnitude > 0.0001f)
+        if (delta.sqrMagnitude > 0.0001f && animator != null)
         {
             delta.Normalize();
             animator.SetFloat("MoveX", delta.x);
@@ -105,7 +104,7 @@ public class MosquitoFly : MonoBehaviour, ISymbolToCollect, IInteractable, ITuto
 
     public void OnFocus()
     {
-        if (canInteract)
+        if (canInteract && spriteRenderer != null)
         {
             spriteRenderer.material = outlineMosquito;
         }
@@ -113,7 +112,7 @@ public class MosquitoFly : MonoBehaviour, ISymbolToCollect, IInteractable, ITuto
 
     public void OnUnfocus()
     {
-        if (canInteract)
+        if (canInteract && spriteRenderer != null)
         {
             spriteRenderer.material = defaultMosquito;
         }
@@ -126,8 +125,6 @@ public class MosquitoFly : MonoBehaviour, ISymbolToCollect, IInteractable, ITuto
 
     public void CollectSymbol()
     {
-        if (!_isClicked) { _isClicked = true; return; }
-
         _connector.CollectSymbol(this);
     }
 
@@ -135,19 +132,21 @@ public class MosquitoFly : MonoBehaviour, ISymbolToCollect, IInteractable, ITuto
     {
         if (frames == null || frames.Count == 0) return;
 
-        animator.enabled = false;
+        // Отключаем полёт и Animator
         _flyTween?.Kill();
-        var moveSeq = DOTween.Sequence();
-        moveSeq.Append(transform.DOMove(transform.position + Vector3.up * 2f, spriteChangeDuration * frames.Count)
+        animator.enabled = false;
+
+        // Двигаем вверх + меняем спрайты
+        var moveSeq = transform.DOMove(transform.position + Vector3.up * 2f, spriteChangeDuration * frames.Count)
             .SetEase(Ease.OutCubic)
-            .OnComplete(() => gameObject.SetActive(false)));
+            .AsyncWaitForCompletion();
 
-        var moveTask = moveSeq.AsyncWaitForCompletion();
+        var spriteSeq = SpriteAnim(frames);
 
+        await Task.WhenAll(moveSeq, spriteSeq);
 
-        var spriteTask = SpriteAnim(frames);
-
-        await Task.WhenAll(moveTask, spriteTask);
+        // Деактивируем объект после анимации
+        gameObject.SetActive(false);
     }
 
     async Task SpriteAnim(List<Sprite> frames)

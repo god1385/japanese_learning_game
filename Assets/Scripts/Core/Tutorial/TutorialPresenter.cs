@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -6,61 +7,89 @@ public class TutorialPresenter
 {
     private readonly LevelDataSet _levelDataSet;
     private readonly TutorialNarrator _narrator;
+    private readonly GameCameraUtilities _camera;
+    private readonly LevelLightningHandler _lightHandler;
     private int _currentStepIndex;
 
     public TutorialPresenter(
         LevelDataSet dataSet,
-        TutorialNarrator narrator)
+        TutorialNarrator narrator,
+        LevelLightningHandler lightHandler,
+        GameCameraUtilities camera)
     {
+        _camera = camera;
         _levelDataSet = dataSet;
         _narrator = narrator;
+        _lightHandler = lightHandler;
     }
 
-    public async void StartTutorial()
+    public async Task StartTutorial()
     {
-        await _narrator.Play("0_0");
-        for (_currentStepIndex = 0; _currentStepIndex < _levelDataSet.StepData.Count; _currentStepIndex++)
+        _currentStepIndex = 0;
+
+        // Начальный нарратор
+        await _narrator.Play(_levelDataSet.TutorialInitialText);
+
+        while (_currentStepIndex < _levelDataSet.StepData.Count)
         {
             var step = _levelDataSet.ReturnRequiredStep(_currentStepIndex);
-
-            var go = step.interactableObject;
-            go.SetActive(true);
-
-            var interactable = go.GetComponent<IInteractable>();
-            var tutorialObject = go.GetComponent<ITutorial>();
-
-            if (interactable != null && tutorialObject != null)
+            if (step == null)
             {
-                tutorialObject.EnableInteraction(true);
-
-                await WaitForInteraction(interactable);
-
-                await PlayStepAnimation(step, tutorialObject);
-
-                tutorialObject.EnableInteraction(false);
-            }
-            else if (tutorialObject != null)
-            {
-                await PlayStepAnimation(step, tutorialObject);
-
-                if (step.canInteractAfterStep)
-                    tutorialObject.EnableInteraction(true);
+                _currentStepIndex++;
+                continue;
             }
 
-            await _narrator.Play(step.narratorText);
-
-            CollectSymbolIfExists(tutorialObject);
-
-            if (step.delayBeforeNextStep > 0)
-                await Task.Delay(TimeSpan.FromSeconds(step.delayBeforeNextStep));
+            await ProcessStep(step);
+            _currentStepIndex++;
         }
     }
 
-    private async Task PlayStepAnimation(TutorialStepData step,ITutorial tutorialObject)
+    private async Task ProcessStep(TutorialStepData step)
     {
-        var sprites = _levelDataSet.ReturnRequiredSprites(step.animationId);
-        if (sprites != null)
-            await tutorialObject.PlayAnimationAsync(sprites);
+        var go = step.interactableObject;
+        ITutorial tutorialObject = null;
+        IInteractable interactable = null;
+
+        if (go != null)
+        {
+            tutorialObject = go.GetComponent<ITutorial>();
+            interactable = go.GetComponent<IInteractable>();
+            go.SetActive(true);
+        }
+
+        // 1️⃣ Ждём интеракции, если есть
+        if (interactable != null && tutorialObject != null)
+        {
+            tutorialObject.EnableInteraction(true);
+            await WaitForInteraction(interactable);
+            tutorialObject.EnableInteraction(false);
+        }
+
+        if (step.isChangingLightning)
+            await _lightHandler.OnTutorialStepChanged(step.stepId);
+        // 2️⃣ Проигрываем анимацию
+        if (tutorialObject != null)
+        {
+            var sprites = _levelDataSet.ReturnRequiredSprites(step.animationId);
+            if (sprites != null)
+                await tutorialObject.PlayAnimationAsync(sprites);
+        }
+
+        if (step.isStepEndingWithShake)
+            _camera.PlayTutorialShake();
+
+        // 3️⃣ Нарратор
+        if (!string.IsNullOrEmpty(step.narratorText))
+            await _narrator.Play(step.narratorText);
+
+
+        // 4️⃣ Собираем символ, если можно
+        if (step.canCollectSymbol && tutorialObject is ISymbolToCollect symbolObj)
+            symbolObj.CollectSymbol();
+
+        // 5️⃣ Delay
+        if (step.delayBeforeNextStep > 0)
+            await Task.Delay(TimeSpan.FromSeconds(step.delayBeforeNextStep));
     }
 
     private Task WaitForInteraction(IInteractable interactable)
@@ -75,13 +104,5 @@ public class TutorialPresenter
 
         interactable.OnInteracted += Handler;
         return tcs.Task;
-    }
-
-    private void CollectSymbolIfExists(ITutorial tutorialObject)
-    {
-        if (tutorialObject is ISymbolToCollect symbolObj)
-        {
-            symbolObj.CollectSymbol();
-        }
     }
 }

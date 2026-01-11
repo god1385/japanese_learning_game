@@ -10,6 +10,9 @@ public class BookInstaller : MonoInstaller
     [SerializeField] private GameCameraUtilities gameCameraUtilities;
     [SerializeField] private LevelDataSet levelDataSet;
     [SerializeField] private TutorialNarrator tutorialNarrator;
+    [SerializeField] private RoadMapWordView wordPrefab;
+    [SerializeField] private Transform roadmapContainer;
+    [SerializeField] private LevelLightningHandler levelLightningHandler;
 
     public override void InstallBindings()
     {
@@ -44,6 +47,14 @@ public class BookInstaller : MonoInstaller
 
         Container.Bind<TutorialPresenter>()
             .AsSingle()
-            .WithArguments(levelDataSet, tutorialNarrator);
+            .WithArguments(levelDataSet, tutorialNarrator, levelLightningHandler);
+
+        Container.Bind<RoadMapPresenter>()
+            .AsSingle()
+            .WithArguments(
+                levelDataSet,
+                wordPrefab,
+                roadmapContainer
+    );
     }
 }

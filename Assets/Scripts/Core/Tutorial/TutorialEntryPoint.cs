@@ -4,15 +4,17 @@ using Zenject;
 public class TutorialEntryPoint : MonoBehaviour
 {
     private TutorialPresenter _tutorial;
+    private RoadMapPresenter _roadMap;
 
     [Inject]
-    public void Construct(TutorialPresenter tutorial)
+    public void Construct(TutorialPresenter tutorial, RoadMapPresenter roadMap)
     {
         _tutorial = tutorial;
+        _roadMap = roadMap;
     }
 
-    private void Start()
+    private async void Start()
     {
-        _tutorial.StartTutorial();
+        await _tutorial.StartTutorial();
     }
 }

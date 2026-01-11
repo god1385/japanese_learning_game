@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,8 +6,13 @@ public class LevelDataSet : MonoBehaviour
 {
     [SerializeField] private List<SpritesForAnimation> playerSprites;
     [SerializeField] private List<TutorialStepData> stepData;
+    [SerializeField] private List<LevelWordData> words;
+    [SerializeField] private string tutorialInitialText;
 
-    public List<TutorialStepData> StepData => stepData;
+    public string TutorialInitialText => tutorialInitialText;
+    public IReadOnlyList<LevelWordData> Words => words;
+
+    public IReadOnlyList<TutorialStepData> StepData => stepData;
     public TutorialStepData ReturnRequiredStep(int index)
     {
         if (index >= stepData.Count) return null;
@@ -39,5 +45,16 @@ public class TutorialStepData
     public string animationId;
     public string narratorText;
     public float delayBeforeNextStep = 0f;
+    public bool canCollectSymbol = false;
     public bool canInteractAfterStep = false;
+    public bool isStepEndingWithShake = false;
+    public bool isChangingLightning = false;
+}
+
+[Serializable]
+public class LevelWordData
+{
+    public string wordId;
+    public List<SymbolData> symbols;
+    public Sprite resultImage;
 }

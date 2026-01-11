@@ -18,7 +18,6 @@ public class PlayerMovement : MonoBehaviour, ITutorial, ISymbolToCollect
     private Rigidbody rb;
     private Vector3 direction;
     private bool _enabled = false;
-    private bool _isAnimating = false;
     [Inject] private SymbolInteractionsConnector _connector;
 
     public SymbolData SymbolToUnlock => symbolToCollect;
@@ -54,7 +53,10 @@ public class PlayerMovement : MonoBehaviour, ITutorial, ISymbolToCollect
 
         if (frames == null || frames.Count == 0) return;
 
-        _isAnimating = true;
+        if (frames == null || frames.Count == 0) return;
+
+        _enabled = false;
+        animator.enabled = false;
 
         foreach (var frame in frames)
         {
@@ -62,7 +64,8 @@ public class PlayerMovement : MonoBehaviour, ITutorial, ISymbolToCollect
             await Task.Delay(TimeSpan.FromSeconds(spriteChangeDuration));
         }
 
-        _isAnimating = false;
+        _enabled = true;
+        animator.enabled = true;
     }
 
     private void Update()
@@ -90,7 +93,8 @@ public class PlayerMovement : MonoBehaviour, ITutorial, ISymbolToCollect
     public void EnableInteraction(bool enabled)
     {
         _enabled = enabled;
-        animator.enabled = enabled;
+
+        if (animator != null) animator.enabled = enabled;
     }
 
     public void CollectSymbol()

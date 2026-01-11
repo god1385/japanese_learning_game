@@ -8,16 +8,15 @@ public class PlayerHandInteractable : MonoBehaviour, ISymbolToCollect, IInteract
 {
     [SerializeField] private SymbolData symbolUnlocked;
     [SerializeField] private GameObject outline;
-    public SymbolData SymbolToUnlock => symbolUnlocked;
-
-    public Transform InteractionPoint => this.transform;
-
-    [Inject] private SymbolInteractionsConnector _connector;
 
     private bool _canInteract = false;
-    private TutorialPresenter _tutorial;
-
     public event Action OnInteracted;
+
+    [Inject] private SymbolInteractionsConnector _connector;
+    public SymbolData SymbolToUnlock => symbolUnlocked;
+    public Transform InteractionPoint => this.transform;
+
+
 
 
     public void Interact()
@@ -31,7 +30,7 @@ public class PlayerHandInteractable : MonoBehaviour, ISymbolToCollect, IInteract
 
     public void OnFocus()
     {
-        if (_canInteract)
+        if (_canInteract && outline != null)
         {
             outline.SetActive(true);
         }
@@ -39,7 +38,7 @@ public class PlayerHandInteractable : MonoBehaviour, ISymbolToCollect, IInteract
 
     public void OnUnfocus()
     {
-        if (_canInteract)
+        if (_canInteract && outline != null)
         {
             outline.SetActive(false);
         }
@@ -58,6 +57,6 @@ public class PlayerHandInteractable : MonoBehaviour, ISymbolToCollect, IInteract
 
     public Task PlayAnimationAsync(List<Sprite> frames)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 }

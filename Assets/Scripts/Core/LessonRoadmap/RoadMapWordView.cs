@@ -17,15 +17,16 @@ public class RoadMapWordView : MonoBehaviour
     [SerializeField] private float maxSizeForElements = 50f;
 
     private readonly List<RoadMapSlotView> _slots = new();
-    private LevelWordData _levelData;
+    private WordData _levelData;
     private int _filledCount = 0;
+    private bool _isVisible = false;
 
     public bool IsCompleted => _filledCount == _slots.Count;
 
-    public void Initialize(LevelWordData data, int index)
+    public void Initialize(WordData data, int index)
     {
         _levelData = data;
-        resultImage.sprite = _levelData.resultImage;
+        resultImage.sprite = _levelData.placeholderSprite ?? _levelData.resultImage;
         resultImage.gameObject.SetActive(false);
         indexText.text = (index + 1).ToString();
 
@@ -39,7 +40,18 @@ public class RoadMapWordView : MonoBehaviour
         }
 
         AdjustSlotSizes(slotsRoot.GetComponent<HorizontalLayoutGroup>());
+
+        _isVisible = !_levelData.hideUntilTutorialStep;
+        gameObject.SetActive(_isVisible);
     }
+    public void RevealWord()
+    {
+        if (_isVisible) return;
+
+        _isVisible = true;
+        gameObject.SetActive(true);
+    }
+
 
     public void AdjustSlotSizes(HorizontalLayoutGroup layoutGroup)
     {
@@ -92,6 +104,7 @@ public class RoadMapWordView : MonoBehaviour
 
     private async Task ShowResult()
     {
+        resultImage.sprite = _levelData.resultImage;
         resultImage.gameObject.SetActive(true);
         await Task.Delay(TimeSpan.FromSeconds(1));
 

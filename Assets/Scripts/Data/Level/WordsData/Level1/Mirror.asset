@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 590a2ba1ae6741f4a95dd6a5f143e7f9, type: 3}
+  m_Name: Mirror
+  m_EditorClassIdentifier: SymboldAssembly::WordData
+  wordId: Letter
+  symbols:
+  - {fileID: 11400000, guid: b87fef8049d7dc649bc622ccb19f10be, type: 2}
+  - {fileID: 11400000, guid: 8e5f0a83e4ddd5c4da4e9e5e08a2106f, type: 2}
+  - {fileID: 11400000, guid: 219d0a6e36c78844381216c05963c381, type: 2}
+  resultImage: {fileID: 1734701991, guid: 133d16359b179e2458048e41c7f03e36, type: 3}
+  hideUntilTutorialStep: 1
+  placeholderSprite: {fileID: 0}

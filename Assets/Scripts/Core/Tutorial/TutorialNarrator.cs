@@ -1,17 +1,34 @@
+using Game.Input;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using TMPro;
 
 public class TutorialNarrator : MonoBehaviour
 {
-    [SerializeField] private TMPro.TextMeshProUGUI text;
+    [SerializeField] private TextMeshProUGUI text;
     [SerializeField] private float charDelay = 0.03f;
 
-
-    public async Task Play(string text)
+    public async Task PlaySequence(List<NarratorText> lines)
     {
         // текст / VO / тайпинг
-        await SayAsync(text);
+        text.gameObject.SetActive(true);
+        await PlayLines(lines);
+    }
+
+    public async Task PlayLines(List<NarratorText> lines)
+    {
+        foreach (var line in lines)
+        {
+            if (line.text != null)
+            {
+                await SayAsync(line.text);
+                await WaitAfterLine(line.delayAfter);
+            }
+        }
+
+        text.gameObject.SetActive(false);
     }
 
     public async Task SayAsync(string message)
@@ -23,8 +40,27 @@ public class TutorialNarrator : MonoBehaviour
             text.text += c;
             await Task.Delay(TimeSpan.FromSeconds(charDelay));
         }
+    }
 
-        // Пауза после текста
-        await Task.Delay(500);
+    private async Task WaitAfterLine(float delay)
+    {
+        var delayTask = Task.Delay(TimeSpan.FromSeconds(delay));
+        var clickTask = WaitForClickAsync();
+
+        await Task.WhenAny(delayTask, clickTask);
+    }
+
+    private Task WaitForClickAsync()
+    {
+        var tcs = new TaskCompletionSource<bool>();
+
+        void Handler()
+        {
+            InputHandler.InteractWithMouth -= Handler;
+            tcs.TrySetResult(true);
+        }
+
+        InputHandler.InteractWithMouth += Handler;
+        return tcs.Task;
     }
 }

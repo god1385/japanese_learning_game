@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DG.Tweening;
+using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -28,7 +30,7 @@ public class TutorialPresenter
         _currentStepIndex = 0;
 
         // Начальный нарратор
-        await _narrator.Play(_levelDataSet.TutorialInitialText);
+        await _narrator.PlaySequence(_levelDataSet.TutorialInitialText);
 
         while (_currentStepIndex < _levelDataSet.StepData.Count)
         {
@@ -44,7 +46,7 @@ public class TutorialPresenter
         }
     }
 
-    private async Task ProcessStep(TutorialStepData step)
+    private async Task ProcessStep(TutorialStep step)
     {
         var go = step.interactableObject;
         ITutorial tutorialObject = null;
@@ -57,39 +59,84 @@ public class TutorialPresenter
             go.SetActive(true);
         }
 
-        // 1️⃣ Ждём интеракции, если есть
-        if (interactable != null && tutorialObject != null)
+        if (step.actionsOrder != null)
         {
-            tutorialObject.EnableInteraction(true);
-            await WaitForInteraction(interactable);
-            tutorialObject.EnableInteraction(false);
+            foreach (var actionType in step.actionsOrder)
+            {
+                switch (actionType)
+                {
+                    case StepActionType.WaitForInteraction:
+                        if (interactable != null && tutorialObject != null)
+                        {
+                            tutorialObject.EnableInteraction(true);
+                            await WaitForInteraction(interactable);
+                            tutorialObject.EnableInteraction(false);
+
+                            if (interactable is ITutorialAwaitable awaitable)
+                            {
+                                if (step.narratorTextIfWaitForInteraction.Count > 0)
+                                {
+                                    awaitable.SetActionAfterInteraction(() => _narrator.PlaySequence(step.narratorTextIfWaitForInteraction));
+                                }
+
+                                await awaitable.WaitForCompletionAsync();
+                            }
+                        }
+                        break;
+                    case StepActionType.ChangeLightning:
+                        if (step.isChangingLightning)
+                            await _lightHandler.OnTutorialStepChanged(step.stepId);
+                        break;
+
+                    case StepActionType.NarratorText:
+                        if (step.narratorText.Count > 0)
+                            await _narrator.PlaySequence(step.narratorText);
+                        break;
+
+                    case StepActionType.CollectSymbol:
+                        if (step.canCollectSymbol && tutorialObject is ISymbolToCollect symbolObj)
+                            await symbolObj.CollectSymbol();
+                        break;
+
+                    case StepActionType.PlayAnimation:
+                        if (tutorialObject != null)
+                        {
+                            var sprites = _levelDataSet.ReturnRequiredSprites(step.animationId);
+                            if (sprites != null)
+                                await tutorialObject.PlayAnimationAsync(sprites);
+                        }
+                        break;
+
+                    case StepActionType.PlayShake:
+                        if (step.isStepEndingWithShake)
+                            _camera.PlayTutorialShake();
+                        break;
+                    case StepActionType.FinishTutorial:
+                        {
+                            await FadeUi(_levelDataSet.UiElementsToFadeInTheEnd);
+                            if (step.narratorText.Count > 0)
+                                await _narrator.PlaySequence(step.narratorText);
+                            break;
+                        }
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
         }
-
-        if (step.isChangingLightning)
-            await _lightHandler.OnTutorialStepChanged(step.stepId);
-        // 2️⃣ Проигрываем анимацию
-        if (tutorialObject != null)
-        {
-            var sprites = _levelDataSet.ReturnRequiredSprites(step.animationId);
-            if (sprites != null)
-                await tutorialObject.PlayAnimationAsync(sprites);
-        }
-
-        if (step.isStepEndingWithShake)
-            _camera.PlayTutorialShake();
-
-        // 3️⃣ Нарратор
-        if (!string.IsNullOrEmpty(step.narratorText))
-            await _narrator.Play(step.narratorText);
-
-
-        // 4️⃣ Собираем символ, если можно
-        if (step.canCollectSymbol && tutorialObject is ISymbolToCollect symbolObj)
-            symbolObj.CollectSymbol();
-
-        // 5️⃣ Delay
         if (step.delayBeforeNextStep > 0)
             await Task.Delay(TimeSpan.FromSeconds(step.delayBeforeNextStep));
+    }
+
+    private async Task FadeUi(List<CanvasGroup> uiElements)
+    {
+        var seq = DOTween.Sequence();
+        foreach (var uiElement in uiElements)
+        {
+            seq.Join(uiElement.DOFade(0, 1f));
+        }
+
+        await seq.AsyncWaitForCompletion();
     }
 
     private Task WaitForInteraction(IInteractable interactable)

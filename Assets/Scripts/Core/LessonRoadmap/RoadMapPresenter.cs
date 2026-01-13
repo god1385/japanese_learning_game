@@ -10,7 +10,6 @@ public class RoadMapPresenter
     private readonly RoadMapWordView _wordPrefab;
     private readonly List<RoadMapWordView> _words = new();
     private readonly SymbolInteractionsConnector _connector;
-    private int _currentWordIndex = 0;
     private bool isActiveAtTheStart = false;
     private CanvasGroup _canvasGroup;
     public RoadMapPresenter(LevelDataSet levelDataSet, RoadMapWordView wordPrefab, Transform container, SymbolInteractionsConnector connector)
@@ -27,6 +26,11 @@ public class RoadMapPresenter
 
     private async Task HandleSymbolUnlocked(SymbolData symbol)
     {
+        foreach (var word in _words)
+        {
+            await word.TryAddSymbol(symbol);
+        }
+
         if (!isActiveAtTheStart)
         {
             isActiveAtTheStart = true;
@@ -34,10 +38,6 @@ public class RoadMapPresenter
             await FadeRoadMapAsync();
         }
 
-        foreach (var word in _words)
-        {
-            await word.TryAddSymbol(symbol);
-        }
     }
 
     private async Task FadeRoadMapAsync()
@@ -45,16 +45,34 @@ public class RoadMapPresenter
         var seq = DOTween.Sequence();
 
         // Fade сразу, но пусть длится так же, как движение, чтобы не было рывка
-        seq.Append(_canvasGroup.DOFade(1f, 2f));
+        seq.Append(_canvasGroup.DOFade(1f, 1f));
+        foreach(var word in _words)
+        {
+            seq.Append(word.GetComponent<CanvasGroup>().DOFade(1f, 1f));
+        }
         await seq.AsyncWaitForCompletion();
 
     }
 
-    private async Task HandleSymbolUnlockedAsync(SymbolData symbol)
+    public void RevealWord(string expectedWord)
     {
-        foreach (var word in _words)
+        string word = "";
+
+        for (int i = 0; i < _levelDataSet.Words.Count; i++)
         {
-            await word.TryAddSymbol(symbol);
+            word = "";
+            for (int j = 0; j < _levelDataSet.Words[i].symbols.Count; j++)
+            {
+                word += _levelDataSet.Words[i].symbols[j].japaneseCharacter;
+            }
+            if (word == expectedWord)
+            {
+                var CanvasGroup = _words[i].GetComponent<CanvasGroup>();
+                CanvasGroup.alpha = 0f;
+                _words[i].RevealWord();
+                CanvasGroup.DOFade(1f, 1f);
+                break;
+            }
         }
     }
 

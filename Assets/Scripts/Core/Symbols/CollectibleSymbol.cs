@@ -1,15 +1,17 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using Zenject;
 
 public class CollectibleSymbol : MonoBehaviour, ISymbolToCollect, IInteractable
 {
-    [SerializeField] private SymbolData symbolInfo;
+    [SerializeField] private List<SymbolData> symbolInfo;
     [SerializeField] private Transform interactablePoint;
     [SerializeField] private GameObject outline;
 
     [Inject] private SymbolInteractionsConnector _connector;
-    public SymbolData SymbolToUnlock => symbolInfo;
+    public IReadOnlyList<SymbolData> SymbolsToUnlock => symbolInfo;
 
     public Transform InteractionPoint => interactablePoint;
 
@@ -22,6 +24,7 @@ public class CollectibleSymbol : MonoBehaviour, ISymbolToCollect, IInteractable
     {
         if (_interacted) return;
 
+        OnInteracted.Invoke();
         _interacted = true;
 
         gameObject.SetActive(false);
@@ -38,8 +41,8 @@ public class CollectibleSymbol : MonoBehaviour, ISymbolToCollect, IInteractable
         outline.SetActive(false);
     }
 
-    public void CollectSymbol()
+    public async Task CollectSymbol()
     {
-        _connector.CollectSymbol(this);
+        await _connector.CollectSymbol(this);
     }
 }

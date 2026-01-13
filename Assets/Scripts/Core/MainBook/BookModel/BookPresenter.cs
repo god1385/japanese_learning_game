@@ -35,12 +35,12 @@ public class BookPresenter
         _bookView.RightPage.OnPlaySoundClicked += OnPlaySoundClicked;
     }
 
-    public void EnqueueUnlockSymbol(SymbolData symbol)
+    public async Task EnqueueUnlockSymbol(SymbolData symbol)
     {
         _unlockQueue.Enqueue(symbol);
 
         if (!_isProcessingQueue)
-            _ = ProcessUnlockQueueAsync();
+            await ProcessUnlockQueueAsync();
     }
 
     private async Task ProcessUnlockQueueAsync()

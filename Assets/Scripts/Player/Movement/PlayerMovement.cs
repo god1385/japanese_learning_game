@@ -13,14 +13,14 @@ public class PlayerMovement : MonoBehaviour, ITutorial, ISymbolToCollect
     [SerializeField] private Animator animator;
     [SerializeField] private float spriteChangeDuration = 0.1f;
     [SerializeField] private SpriteRenderer playerRenderer;
-    [SerializeField] private SymbolData symbolToCollect;
+    [SerializeField] private List<SymbolData> symbolUnlocked;
 
     private Rigidbody rb;
     private Vector3 direction;
     private bool _enabled = false;
     [Inject] private SymbolInteractionsConnector _connector;
 
-    public SymbolData SymbolToUnlock => symbolToCollect;
+    public IReadOnlyList<SymbolData> SymbolsToUnlock => symbolUnlocked;
 
     private void Start()
     {
@@ -50,8 +50,6 @@ public class PlayerMovement : MonoBehaviour, ITutorial, ISymbolToCollect
 
     public async Task PlayAnimationAsync(List<Sprite> frames)
     {
-
-        if (frames == null || frames.Count == 0) return;
 
         if (frames == null || frames.Count == 0) return;
 
@@ -97,8 +95,8 @@ public class PlayerMovement : MonoBehaviour, ITutorial, ISymbolToCollect
         if (animator != null) animator.enabled = enabled;
     }
 
-    public void CollectSymbol()
+    public async Task CollectSymbol()
     {
-        _connector.CollectSymbol(this);
+        await _connector.CollectSymbol(this);
     }
 }

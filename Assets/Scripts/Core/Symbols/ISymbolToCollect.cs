@@ -1,7 +1,9 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public interface ISymbolToCollect
 {
-    public SymbolData SymbolToUnlock { get; }
-    void CollectSymbol();
+    IReadOnlyList<SymbolData> SymbolsToUnlock { get; }
+    Task CollectSymbol();
 }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8bec521ebc007c4887d18ea63ce5cff, type: 3}
   m_Name: Mi
   m_EditorClassIdentifier: Assembly-CSharp::SymbolData
-  id: character4
+  id: Mi
   japaneseCharacter: "\u307F"
   pronunciation: mi
   icon: {fileID: 21300000, guid: 5728b3a8dd7d5b04399d44cad65df361, type: 3}

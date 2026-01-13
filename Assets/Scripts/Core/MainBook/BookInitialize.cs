@@ -52,8 +52,6 @@ public class BookInitialize : MonoBehaviour
 
     private void OnDestroy()
     {
-        _bookPresenter.BookOpened -= BlockInput;
-        _bookPresenter.BookClosed -= UnBlockInput;
         _bookPresenter.Dispose();
     }
 }

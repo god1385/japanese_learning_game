@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.LightTransport;
 
@@ -12,9 +13,12 @@ public class SymbolInteractionsConnector
         _bookPresenter = bookPresenter;
     }
 
-    public void CollectSymbol(ISymbolToCollect source)
+    public async Task CollectSymbol(ISymbolToCollect source)
     {
-        _bookPresenter.EnqueueUnlockSymbol(source.SymbolToUnlock);
-        OnSymbolUnlocked?.Invoke(source.SymbolToUnlock);
+        foreach (var symbol in source.SymbolsToUnlock)
+        {
+            await _bookPresenter.EnqueueUnlockSymbol(symbol);
+            OnSymbolUnlocked?.Invoke(symbol);
+        }
     }
 }

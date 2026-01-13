@@ -5,15 +5,27 @@ using UnityEngine;
 public class LevelDataSet : MonoBehaviour
 {
     [SerializeField] private List<SpritesForAnimation> playerSprites;
-    [SerializeField] private List<TutorialStepData> stepData;
-    [SerializeField] private List<LevelWordData> words;
-    [SerializeField] private string tutorialInitialText;
+    [SerializeField] private List<TutorialStep> stepData;
+    [SerializeField] private List<GameObject> gameObjectsToLink;
+    [SerializeField] private List<WordData> words;
+    [SerializeField] private List<NarratorText> tutorialInitialText;
+    [SerializeField] private List<CanvasGroup> uiElementsToFadeInTheEnd;
 
-    public string TutorialInitialText => tutorialInitialText;
-    public IReadOnlyList<LevelWordData> Words => words;
+    public List<NarratorText> TutorialInitialText => tutorialInitialText;
+    public List<CanvasGroup> UiElementsToFadeInTheEnd => uiElementsToFadeInTheEnd;
+    public IReadOnlyList<WordData> Words => words;
 
-    public IReadOnlyList<TutorialStepData> StepData => stepData;
-    public TutorialStepData ReturnRequiredStep(int index)
+    public IReadOnlyList<TutorialStep> StepData => stepData;
+
+    private void Awake()
+    {
+        for (int i = 0; i < stepData.Count; i++)
+        {
+            if (i < gameObjectsToLink.Count)
+                stepData[i].interactableObject = gameObjectsToLink[i];
+        }
+    }
+    public TutorialStep ReturnRequiredStep(int index)
     {
         if (index >= stepData.Count) return null;
         else return stepData[index];
@@ -38,23 +50,21 @@ public struct SpritesForAnimation
 }
 
 [System.Serializable]
-public class TutorialStepData
+public class NarratorText
 {
-    public string stepId;
-    public GameObject interactableObject;
-    public string animationId;
-    public string narratorText;
-    public float delayBeforeNextStep = 0f;
-    public bool canCollectSymbol = false;
-    public bool canInteractAfterStep = false;
-    public bool isStepEndingWithShake = false;
-    public bool isChangingLightning = false;
+    [TextArea]
+    public string text;
+    public float delayAfter = 0.5f;
 }
 
-[Serializable]
-public class LevelWordData
+[System.Serializable]
+public enum StepActionType
 {
-    public string wordId;
-    public List<SymbolData> symbols;
-    public Sprite resultImage;
+    WaitForInteraction,
+    NarratorText,
+    CollectSymbol,
+    PlayAnimation,
+    PlayShake,
+    ChangeLightning,
+    FinishTutorial
 }
